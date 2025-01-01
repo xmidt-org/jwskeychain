@@ -85,11 +85,12 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	tests := []struct {
-		desc      string
-		opts      []Option
-		newErr    error
-		rootCount int
-		checks    []jwtTest
+		desc        string
+		opts        []Option
+		newErr      error
+		rootCount   int
+		policyCount int
+		checks      []jwtTest
 	}{
 		{
 			desc:   "no options",
@@ -118,8 +119,9 @@ func TestEndToEnd(t *testing.T) {
 				TrustedRoots(b.Root().Public),
 				RequirePolicies("1.2.100", "1.2.900"),
 			},
-			newErr:    nil,
-			rootCount: 2,
+			newErr:      nil,
+			rootCount:   2,
+			policyCount: 2,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -132,10 +134,12 @@ func TestEndToEnd(t *testing.T) {
 			opts: []Option{
 				TrustedRoots(a.Root().Public),
 				TrustedRoots(b.Root().Public),
-				RequirePolicies("1.2.100", "1.2.900", "1.2.901"),
+				RequirePolicies("1.2.100", "1.2.900"),
+				RequirePolicies("1.2.901"),
 			},
-			newErr:    nil,
-			rootCount: 2,
+			newErr:      nil,
+			rootCount:   2,
+			policyCount: 3,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -172,6 +176,15 @@ func TestEndToEnd(t *testing.T) {
 			} else {
 				require.NotNil(roots)
 				assert.Len(roots, tt.rootCount)
+			}
+
+			policies := obj.Policies()
+
+			if tt.policyCount == 0 {
+				assert.Nil(policies)
+			} else {
+				require.NotNil(policies)
+				assert.Len(policies, tt.policyCount)
 			}
 
 			checks := append(common, tt.checks...)

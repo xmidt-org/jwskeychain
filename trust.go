@@ -21,18 +21,17 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
-// Trust is a struct that holds the trusted roots, intermediates, and policies
+// Trust is a struct that holds the trusted roots,  and policies
 // for verifying a JWT or JWS signature based on the x5c header.
 type Trust struct {
-	roots         []*x509.Certificate
-	intermediates []*x509.Certificate
-	policies      []string
-	now           func() time.Time
+	roots    []*x509.Certificate
+	policies []string
+	now      func() time.Time
 }
 
 // New creates a new Trust object with the provided options.  If no options are
-// provided, the Trust object is created with no trusted roots, intermediates,
-// or required policies.  The current time function is set to time.Now by default.
+// provided, the Trust object is created with no trusted roots or required
+// policies.  The current time function is set to time.Now by default.
 // Unless the system CA store is passed in as an option, it is not used since
 // that would default to trusting more than expected.
 func New(opts ...Option) (*Trust, error) {
@@ -56,6 +55,11 @@ func New(opts ...Option) (*Trust, error) {
 // Roots returns the trusted root certificates for the Trust object.
 func (t Trust) Roots() []*x509.Certificate {
 	return t.roots
+}
+
+// Policies returns the required policies for the Trust object.
+func (t Trust) Policies() []string {
+	return t.policies
 }
 
 // GetKey returns the public key from the x5c header of a JWS/JWT signature if
@@ -119,7 +123,7 @@ func (t Trust) verify(chain []*x509.Certificate, err error) ([][]*x509.Certifica
 	}
 
 	intermediates := x509.NewCertPool()
-	for _, cert := range append(t.intermediates, chain[1:]...) {
+	for _, cert := range chain[1:] {
 		intermediates.AddCert(cert)
 	}
 

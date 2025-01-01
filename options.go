@@ -36,14 +36,6 @@ func TrustedRoots(cert ...*x509.Certificate) Option {
 		})
 }
 
-// TrustedIntermediates adds the provided intermediate certificates to the Trust object.
-func TrustedIntermediates(cert ...*x509.Certificate) Option {
-	return optionFunc(
-		func(t *Trust) {
-			t.intermediates = append(t.intermediates, cert...)
-		})
-}
-
 // WithTimeFunc sets the function to retrieve the current time for the Trust object.
 func WithTimeFunc(now func() time.Time) Option {
 	return optionFunc(
