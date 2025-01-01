@@ -12,13 +12,13 @@ import (
 	"github.com/xmidt-org/keychainjwt/keychaintest"
 )
 
-func CreateSignedJWT(keychain keychaintest.Chain) (string, error) {
+func CreateSignedJWT(keychain keychaintest.Chain) ([]byte, error) {
 	// Build certificate chain.
 	var chain cert.Chain
 	for _, cert := range keychain.Included() {
 		err := chain.AddString(base64.URLEncoding.EncodeToString(cert.Raw))
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 
@@ -26,7 +26,7 @@ func CreateSignedJWT(keychain keychaintest.Chain) (string, error) {
 	headers := jws.NewHeaders()
 	err := headers.Set(jws.X509CertChainKey, &chain)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	key := jws.WithKey(jwa.ES256, keychain.Leaf().Private, jws.WithProtectedHeaders(headers))
@@ -34,8 +34,8 @@ func CreateSignedJWT(keychain keychaintest.Chain) (string, error) {
 	// Sign the inner payload with the private key.
 	signed, err := jws.Sign([]byte("{}"), key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(signed), nil
+	return signed, nil
 }

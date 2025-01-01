@@ -15,7 +15,7 @@ import (
 )
 
 type jwtTest struct {
-	jwt    string
+	jwt    []byte
 	header string
 	alg    string
 	key    any
@@ -34,7 +34,7 @@ func TestEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, &b)
 
-	var neverTrusted string
+	var neverTrusted []byte
 	{
 		c, err := keychaintest.New(keychaintest.Desc("leaf<-ica(1.2.900,1.2.901)<-ica(1.2.100)<-root"))
 		require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestEndToEnd(t *testing.T) {
 			header: `{"alg":"RS256", "x5c":["e30="]}`,
 			err:    ErrParsingCert,
 		}, {
-			jwt: "not a JWT",
+			jwt: []byte("not a JWT"),
 			err: errUnknown,
 		},
 	}
@@ -191,14 +191,14 @@ func TestEndToEnd(t *testing.T) {
 			for _, check := range checks {
 
 				jwt := check.jwt
-				if jwt == "" {
+				if jwt == nil {
 					h := base64.URLEncoding.EncodeToString([]byte(check.header))
 					b := base64.URLEncoding.EncodeToString([]byte("{}"))
 					s := ""
 
 					h = strings.ReplaceAll(h, "=", "")
 					b = strings.ReplaceAll(b, "=", "")
-					jwt = strings.Join([]string{h, b, s}, ".")
+					jwt = []byte(strings.Join([]string{h, b, s}, "."))
 				}
 				alg, k, err := obj.GetKey([]byte(jwt))
 
