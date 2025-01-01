@@ -53,6 +53,11 @@ func New(opts ...Option) (*Trust, error) {
 	return &r, nil
 }
 
+// Roots returns the trusted root certificates for the Trust object.
+func (t Trust) Roots() []*x509.Certificate {
+	return t.roots
+}
+
 // GetKey returns the public key from the x5c header of a JWS/JWT signature if
 // the signature is valid and the certificate chain is trusted.  The public key
 // is returned as an interface{} to allow for different key types.  If the

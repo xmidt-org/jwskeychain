@@ -85,10 +85,11 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	tests := []struct {
-		desc   string
-		opts   []Option
-		newErr error
-		checks []jwtTest
+		desc      string
+		opts      []Option
+		newErr    error
+		rootCount int
+		checks    []jwtTest
 	}{
 		{
 			desc:   "no options",
@@ -98,7 +99,8 @@ func TestEndToEnd(t *testing.T) {
 			opts: []Option{
 				TrustedRoots(a.Root().Public),
 			},
-			newErr: nil,
+			newErr:    nil,
+			rootCount: 1,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -116,7 +118,8 @@ func TestEndToEnd(t *testing.T) {
 				TrustedRoots(b.Root().Public),
 				RequirePolicies("1.2.100", "1.2.900"),
 			},
-			newErr: nil,
+			newErr:    nil,
+			rootCount: 2,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -131,7 +134,8 @@ func TestEndToEnd(t *testing.T) {
 				TrustedRoots(b.Root().Public),
 				RequirePolicies("1.2.100", "1.2.900", "1.2.901"),
 			},
-			newErr: nil,
+			newErr:    nil,
+			rootCount: 2,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -160,6 +164,15 @@ func TestEndToEnd(t *testing.T) {
 
 			require.NotNil(obj)
 			require.NoError(err)
+
+			roots := obj.Roots()
+
+			if tt.rootCount == 0 {
+				assert.Nil(roots)
+			} else {
+				require.NotNil(roots)
+				assert.Len(roots, tt.rootCount)
+			}
 
 			checks := append(common, tt.checks...)
 			for _, check := range checks {
