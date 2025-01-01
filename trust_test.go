@@ -200,7 +200,7 @@ func TestEndToEnd(t *testing.T) {
 					b = strings.ReplaceAll(b, "=", "")
 					jwt = []byte(strings.Join([]string{h, b, s}, "."))
 				}
-				alg, k, err := obj.GetKey([]byte(jwt))
+				alg, k, err := obj.GetKey(jwt)
 
 				if check.err != nil {
 					assert.Empty(alg)
