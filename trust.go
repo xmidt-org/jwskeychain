@@ -59,8 +59,8 @@ func New(opts ...Option) (*Trust, error) {
 // provided text is not a valid JWS/JWT, the x5c header is missing, or the
 // certificate chain is not trusted, an error is returned.  The algorithm
 // string provided in the header is also returned.
-func (t Trust) GetKey(text string) (alg string, key any, err error) {
-	untrusted, err := jws.Parse([]byte(text))
+func (t Trust) GetKey(text []byte) (alg string, key any, err error) {
+	untrusted, err := jws.Parse(text)
 	if err != nil {
 		return "", nil, errors.Join(err, ErrParsingJWT)
 	}

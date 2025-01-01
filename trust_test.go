@@ -174,7 +174,7 @@ func TestEndToEnd(t *testing.T) {
 					b = strings.ReplaceAll(b, "=", "")
 					jwt = strings.Join([]string{h, b, s}, ".")
 				}
-				alg, k, err := obj.GetKey(jwt)
+				alg, k, err := obj.GetKey([]byte(jwt))
 
 				if check.err != nil {
 					assert.Empty(alg)
