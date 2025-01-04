@@ -1,28 +1,36 @@
-// SPDX-FileCopyrightText: 2024 Comcast Cable Communications Management, LLC
+// SPDX-FileCopyrightText: 2024-2025 Comcast Cable Communications Management, LLC
 // SPDX-License-Identifier: Apache-2.0
 
-package keychainjwt
+package jwskeychain
 
 import (
+	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xmidt-org/keychainjwt/keychaintest"
+	"github.com/xmidt-org/jwskeychain/keychaintest"
 )
 
 type jwtTest struct {
 	jwt    []byte
 	header string
-	alg    string
+	alg    jwa.SignatureAlgorithm
 	key    any
 	err    error
+	errs   []error
 }
 
 func TestEndToEnd(t *testing.T) {
+	ignored := errors.New("ignored")
+	errSpecific := errors.New("specific")
 	errUnknown := errors.New("unknown")
 	require.Error(t, errUnknown)
 
@@ -56,45 +64,45 @@ func TestEndToEnd(t *testing.T) {
 	common := []jwtTest{
 		{
 			jwt: neverTrusted,
-			err: errUnknown,
+			err: ErrUntrustedKey,
 		}, {
 			header: "{}",
-			err:    ErrMissingHeader,
+			err:    ignored,
 		}, {
 			header: `{"alg":"none"}`,
-			err:    ErrDisallowedAlg,
+			err:    ignored,
 		}, {
 			header: `{"alg":"HS256"}`,
-			err:    ErrDisallowedAlg,
+			err:    ignored,
 		}, {
 			header: `{"alg":"RS256"}`,
-			err:    ErrMissingHeader,
+			err:    ignored,
 		}, {
 			header: `{"alg":"RS256", "x5c":[]}`,
-			err:    ErrInvalidCert,
+			err:    ErrUntrustedKey,
 		}, {
 			header: `{"alg":"RS256", "x5c":["invalid base64"]}`,
-			err:    ErrDecodingCert,
+			err:    ErrParsingJWS,
 		}, {
 			header: `{"alg":"RS256", "x5c":["e30="]}`,
-			err:    ErrParsingCert,
-		}, {
-			jwt: []byte("not a JWT"),
-			err: errUnknown,
+			err:    ErrParsingJWS,
 		},
 	}
 
 	tests := []struct {
-		desc        string
-		opts        []Option
-		newErr      error
-		rootCount   int
-		policyCount int
-		checks      []jwtTest
+		desc      string
+		opts      []Option
+		newErr    error
+		rootCount int
+		checks    []jwtTest
 	}{
 		{
 			desc:   "no options",
 			newErr: nil,
+		}, {
+			desc:   "err option",
+			opts:   []Option{errOption(errSpecific)},
+			newErr: errSpecific,
 		}, {
 			desc: "trust without policies check",
 			opts: []Option{
@@ -105,11 +113,11 @@ func TestEndToEnd(t *testing.T) {
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
-					alg: "ES256",
+					alg: jwa.ES256,
 					key: a.Leaf().Public.PublicKey,
 				}, {
 					jwt: bJWT,
-					err: errUnknown,
+					err: ErrUntrustedKey,
 				},
 			},
 		}, {
@@ -119,9 +127,8 @@ func TestEndToEnd(t *testing.T) {
 				TrustedRoots(b.Root().Public),
 				RequirePolicies("1.2.100", "1.2.900"),
 			},
-			newErr:      nil,
-			rootCount:   2,
-			policyCount: 2,
+			newErr:    nil,
+			rootCount: 2,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
@@ -137,15 +144,14 @@ func TestEndToEnd(t *testing.T) {
 				RequirePolicies("1.2.100", "1.2.900"),
 				RequirePolicies("1.2.901"),
 			},
-			newErr:      nil,
-			rootCount:   2,
-			policyCount: 3,
+			newErr:    nil,
+			rootCount: 2,
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
 				}, {
-					jwt: bJWT,
-					err: ErrMissingPolicy,
+					jwt:  bJWT,
+					errs: []error{ErrUntrustedKey, ErrMissingPolicy},
 				},
 			},
 		},
@@ -178,15 +184,6 @@ func TestEndToEnd(t *testing.T) {
 				assert.Len(roots, tt.rootCount)
 			}
 
-			policies := obj.Policies()
-
-			if tt.policyCount == 0 {
-				assert.Nil(policies)
-			} else {
-				require.NotNil(policies)
-				assert.Len(policies, tt.policyCount)
-			}
-
 			checks := append(common, tt.checks...)
 			for _, check := range checks {
 
@@ -200,30 +197,67 @@ func TestEndToEnd(t *testing.T) {
 					b = strings.ReplaceAll(b, "=", "")
 					jwt = []byte(strings.Join([]string{h, b, s}, "."))
 				}
-				alg, k, err := obj.GetKey(jwt)
 
-				if check.err != nil {
-					assert.Empty(alg)
-					assert.Empty(k)
+				ctx := context.Background()
+				msg, err := jws.Parse(jwt)
+				require.NoError(err)
+				sigs := msg.Signatures()
+				var ks mockKey
+				for _, sig := range sigs {
+					err = obj.FetchKeys(ctx, &ks, sig, msg)
+				}
+
+				if check.err != nil || len(check.errs) > 0 {
+					assert.Empty(ks)
+
+					if errors.Is(check.err, ignored) {
+						assert.NoError(err)
+						continue
+					}
+
 					require.Error(err)
+
+					if len(check.errs) > 0 {
+						for _, e := range check.errs {
+							require.ErrorIs(err, e)
+						}
+						continue
+					}
+
 					if !errors.Is(check.err, errUnknown) {
 						require.ErrorIs(err, check.err)
 					}
 					continue
 				}
 
-				assert.NotEmpty(alg)
-				assert.NotNil(k)
+				assert.NotEmpty(ks)
+				assert.Len(ks.keys, 1)
 				require.NoError(err)
 
 				if check.alg != "" {
-					assert.Equal(check.alg, alg)
+					assert.Equal(check.alg, ks.keys[0].alg)
 				}
 
 				if check.key != nil {
-					assert.Equal(check.key, k)
+					assert.Equal(check.key, ks.keys[0].key)
 				}
 			}
 		})
 	}
+}
+
+func TestVerify(t *testing.T) {
+	ctx := context.Background()
+	chain := []*x509.Certificate{}
+	now := time.Now()
+	err := VerifierFunc(
+		func(c context.Context, ch []*x509.Certificate, n time.Time) error {
+			assert.Equal(t, ctx, c)
+			assert.Equal(t, chain, ch)
+			assert.Equal(t, now, n)
+			return nil
+		},
+	).Verify(ctx, chain, now)
+
+	assert.NoError(t, err)
 }

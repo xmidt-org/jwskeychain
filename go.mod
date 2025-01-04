@@ -1,4 +1,4 @@
-module github.com/xmidt-org/keychainjwt
+module github.com/xmidt-org/jwskeychain
 
 go 1.23.1
 

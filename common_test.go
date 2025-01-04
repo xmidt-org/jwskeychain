@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2024 Comcast Cable Communications Management, LLC
+// SPDX-FileCopyrightText: 2024-2025 Comcast Cable Communications Management, LLC
 // SPDX-License-Identifier: Apache-2.0
 
-package keychainjwt
+package jwskeychain
 
 import (
 	"encoding/base64"
@@ -9,7 +9,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/cert"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
-	"github.com/xmidt-org/keychainjwt/keychaintest"
+	"github.com/xmidt-org/jwskeychain/keychaintest"
 )
 
 func CreateSignedJWT(keychain keychaintest.Chain) ([]byte, error) {

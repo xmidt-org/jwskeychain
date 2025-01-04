@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2025 Comcast Cable Communications Management, LLC
+// SPDX-FileCopyrightText: 2024-2025 Comcast Cable Communications Management, LLC
 // SPDX-License-Identifier: Apache-2.0
 
-package keychainjwt
+package jwskeychain
 
 import (
 	"crypto/rand"
@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xmidt-org/keychainjwt/keychaintest"
+	"github.com/xmidt-org/jwskeychain/keychaintest"
 )
 
 func TestCrossSigning(t *testing.T) {
@@ -271,8 +273,10 @@ func TestCrossSigning(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, trust)
 
-			alg, key, err := trust.GetKey(test.jwt)
+			payload, err := jws.Verify(test.jwt, jws.WithKeyProvider(trust))
+
 			if test.err != nil {
+				assert.Nil(t, payload)
 				require.Error(t, err)
 				if !errors.Is(test.err, errUnknown) {
 					require.ErrorIs(t, err, test.err)
@@ -281,8 +285,7 @@ func TestCrossSigning(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			require.Equal(t, "ES256", alg)
-			require.Equal(t, test.key, key)
+			assert.NotNil(t, payload)
 		})
 	}
 }
