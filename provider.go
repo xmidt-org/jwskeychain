@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: 2024-2025 Comcast Cable Communications Management, LLC
 // SPDX-License-Identifier: Apache-2.0
 
-// Package jwskeychain provides functionality for handling JSON Web Signatures (JWS)
-// and JSON Web Tokens (JWT) with support for certificate-based trust chains. It allows
-// for the verification of signatures using trusted root and intermediate certificates
-// specified in the x5c header of the JWS/JWT. The package also supports customizable
-// trust policies and options for flexible configuration.
-
+// Package jwskeychain provides x509 certificate chain verification for JWS/JWT
+// signatures.  It allows for the verification of signatures using trusted root
+// and intermediate certificates specified in the x5c header of the JWS/JWT. This
+// package also supports customizable trust Verifiers and options for flexible
+// configuration.
+//
+// This package is based on the jwx package from lestrrat-go/jwx/v2.  The
+// Provider struct implements the jws.KeyProvider interface from the jwx package.
+//
+// See https://github.com/lestrrat-go/jwx for more information on the jwx package.
 package jwskeychain
 
 import (
