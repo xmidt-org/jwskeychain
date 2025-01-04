@@ -70,7 +70,10 @@ func (t Provider) Roots() []*x509.Certificate {
 // and verifies the certificate chain against the trusted roots.  If the
 // certificate chain is valid and contains all required policies, the public
 // key is added to the key sink.  If the certificate chain is invalid or does
-// not contain all required policies, an error is returned.
+// not contain all required policies, the key is not added and no error is
+// returned.  This allows for other handlers to potentially succeed.  Only
+// if this encounters an error with the formatting of the x5c header, will it
+// return an error.
 func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signature, msg *jws.Message) error {
 	headers := sig.ProtectedHeaders()
 
@@ -83,22 +86,19 @@ func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signat
 	}
 
 	certs, err := chainToCerts(chain)
-	if err != nil {
+	if err != nil || len(certs) == 0 {
 		return err
-	}
-	if len(certs) == 0 {
-		return ErrUntrustedKey
 	}
 
 	// Link the certificate chain against the trusted roots if possible.
-	chains, err := t.linkToRoots(certs)
-	if err != nil {
-		return err
+	chains := t.linkToRoots(certs)
+	if chains == nil {
+		return nil
 	}
 
-	verified, err := t.verifyChains(ctx, chains)
-	if err != nil {
-		return err
+	verified := t.verifyChains(ctx, chains)
+	if verified == nil {
+		return nil
 	}
 
 	// We only care about the leaf node which is always the first cert in any
@@ -135,7 +135,7 @@ func chainToCerts(chain *cert.Chain) ([]*x509.Certificate, error) {
 // linkToRoots verifies the certificate chain against the trusted roots and
 // returns the chain if it is valid.  If the chain is invalid, an error is
 // returned.  There can be multiple valid chains.
-func (t Provider) linkToRoots(chain []*x509.Certificate) ([][]*x509.Certificate, error) {
+func (t Provider) linkToRoots(chain []*x509.Certificate) [][]*x509.Certificate {
 	roots := x509.NewCertPool()
 	for _, root := range t.roots {
 		roots.AddCert(root)
@@ -153,26 +153,22 @@ func (t Provider) linkToRoots(chain []*x509.Certificate) ([][]*x509.Certificate,
 			CurrentTime:   t.now(),
 		})
 
-	if err != nil || rv == nil {
-		return nil, errors.Join(err, ErrUntrustedKey)
+	if err != nil {
+		return nil
 	}
-	return rv, nil
+
+	return rv
 }
 
 // verifyChains verifies the certificate chains against the required verifiers.
-func (t Provider) verifyChains(ctx context.Context, chains [][]*x509.Certificate) ([]*x509.Certificate, error) {
-	errs := make([]error, 0, len(chains))
+func (t Provider) verifyChains(ctx context.Context, chains [][]*x509.Certificate) []*x509.Certificate {
 	for _, chain := range chains {
-		err := t.verifyChain(ctx, chain)
-		if err == nil {
-			return chain, nil
+		if err := t.verifyChain(ctx, chain); err == nil {
+			return chain
 		}
-
-		errs = append(errs, err)
 	}
 
-	errs = append(errs, ErrUntrustedKey)
-	return nil, errors.Join(errs...)
+	return nil
 }
 
 // verifyChain verifies the certificate chain against the required verifiers.

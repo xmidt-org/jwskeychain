@@ -25,7 +25,6 @@ type jwtTest struct {
 	alg    jwa.SignatureAlgorithm
 	key    any
 	err    error
-	errs   []error
 }
 
 func TestEndToEnd(t *testing.T) {
@@ -64,7 +63,7 @@ func TestEndToEnd(t *testing.T) {
 	common := []jwtTest{
 		{
 			jwt: neverTrusted,
-			err: ErrUntrustedKey,
+			err: ignored,
 		}, {
 			header: "{}",
 			err:    ignored,
@@ -79,7 +78,7 @@ func TestEndToEnd(t *testing.T) {
 			err:    ignored,
 		}, {
 			header: `{"alg":"RS256", "x5c":[]}`,
-			err:    ErrUntrustedKey,
+			err:    ignored,
 		}, {
 			header: `{"alg":"RS256", "x5c":["invalid base64"]}`,
 			err:    ErrParsingJWS,
@@ -117,7 +116,7 @@ func TestEndToEnd(t *testing.T) {
 					key: a.Leaf().Public.PublicKey,
 				}, {
 					jwt: bJWT,
-					err: ErrUntrustedKey,
+					err: ignored,
 				},
 			},
 		}, {
@@ -150,8 +149,8 @@ func TestEndToEnd(t *testing.T) {
 				{
 					jwt: aJWT,
 				}, {
-					jwt:  bJWT,
-					errs: []error{ErrUntrustedKey, ErrMissingPolicy},
+					jwt: bJWT,
+					err: ignored,
 				},
 			},
 		},
@@ -207,7 +206,7 @@ func TestEndToEnd(t *testing.T) {
 					err = obj.FetchKeys(ctx, &ks, sig, msg)
 				}
 
-				if check.err != nil || len(check.errs) > 0 {
+				if check.err != nil {
 					assert.Empty(ks)
 
 					if errors.Is(check.err, ignored) {
@@ -216,13 +215,6 @@ func TestEndToEnd(t *testing.T) {
 					}
 
 					require.Error(err)
-
-					if len(check.errs) > 0 {
-						for _, e := range check.errs {
-							require.ErrorIs(err, e)
-						}
-						continue
-					}
 
 					if !errors.Is(check.err, errUnknown) {
 						require.ErrorIs(err, check.err)

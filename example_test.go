@@ -61,4 +61,7 @@ func Example() {
 	if err == nil {
 		panic("expected an error")
 	}
+
+	// Output:
+	// hello, world, I'm trusted
 }

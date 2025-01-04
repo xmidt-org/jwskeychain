@@ -6,8 +6,7 @@ package jwskeychain
 import "errors"
 
 var (
-	// ErrUntrustedKey is returned when a key is not trusted by any of the root
-	// certificates, or the Verifiers in the Provider.
+	// Deprecated: ErrUntrustedKey is no longer used and will be removed in future versions.
 	ErrUntrustedKey = errors.New("untrusted key")
 
 	// ErrParsingJWS is returned when there is an error parsing the JWS.
