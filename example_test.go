@@ -4,10 +4,8 @@
 package jwskeychain_test
 
 import (
-	"encoding/base64"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/v2/cert"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/xmidt-org/jwskeychain"
@@ -15,23 +13,13 @@ import (
 )
 
 func CreateSignedJWT(keychain keychaintest.Chain, payload []byte) ([]byte, error) {
-	// Build certificate chain.
-	var chain cert.Chain
-	for _, cert := range keychain.Included() {
-		err := chain.AddString(base64.URLEncoding.EncodeToString(cert.Raw))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Create headers and set x5c with certificate chain.
-	headers := jws.NewHeaders()
-	err := headers.Set(jws.X509CertChainKey, &chain)
+	// This block shows how you can use the Signer() function.
+	key, err := jwskeychain.Signer(jwa.ES256,
+		keychain.Leaf().Private,
+		keychain.Included())
 	if err != nil {
 		return nil, err
 	}
-
-	key := jws.WithKey(jwa.ES256, keychain.Leaf().Private, jws.WithProtectedHeaders(headers))
 
 	// Sign the inner payload with the private key.
 	signed, err := jws.Sign(payload, key)

@@ -81,23 +81,23 @@ func TestCrossSigning(t *testing.T) {
 	}
 	require.NotEmpty(t, &bxc)
 
-	aJwt, err := CreateSignedJWT(a)
+	aJwt, err := createSignedJWT(a)
 	require.NoError(t, err)
 	require.NotEmpty(t, aJwt)
 
-	bJwt, err := CreateSignedJWT(b)
+	bJwt, err := createSignedJWT(b)
 	require.NoError(t, err)
 	require.NotEmpty(t, bJwt)
 
-	cJwt, err := CreateSignedJWT(c)
+	cJwt, err := createSignedJWT(c)
 	require.NoError(t, err)
 	require.NotEmpty(t, cJwt)
 
-	axcJwt, err := CreateSignedJWT(axc)
+	axcJwt, err := createSignedJWT(axc)
 	require.NoError(t, err)
 	require.NotEmpty(t, axcJwt)
 
-	bxcJwt, err := CreateSignedJWT(bxc)
+	bxcJwt, err := createSignedJWT(bxc)
 	require.NoError(t, err)
 	require.NotEmpty(t, bxcJwt)
 

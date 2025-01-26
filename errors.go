@@ -15,4 +15,11 @@ var (
 	// ErrMissingPolicy is returned when a required policy is missing from the
 	// certificate chain.
 	ErrMissingPolicy = errors.New("missing policy")
+
+	// ErrInvalidx509Chain is returned when the provided chain can't be used to
+	// sign the JWS.
+	ErrInvalidx509Chain = errors.New("invalid x509 chain")
+
+	// ErrInvalidArg is returned when an invalid algorithm type is provided.
+	ErrInvalidAlg = errors.New("invalid algorithm")
 )

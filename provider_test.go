@@ -47,16 +47,16 @@ func TestEndToEnd(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, &c)
 
-		neverTrusted, err = CreateSignedJWT(c)
+		neverTrusted, err = createSignedJWT(c)
 		require.NoError(t, err)
 		require.NotEmpty(t, neverTrusted)
 	}
 
-	aJWT, err := CreateSignedJWT(a)
+	aJWT, err := createSignedJWT(a)
 	require.NoError(t, err)
 	require.NotEmpty(t, aJWT)
 
-	bJWT, err := CreateSignedJWT(b)
+	bJWT, err := createSignedJWT(b)
 	require.NoError(t, err)
 	require.NotEmpty(t, bJWT)
 
