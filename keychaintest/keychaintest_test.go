@@ -86,7 +86,7 @@ func TestNew(t *testing.T) {
 			}
 			require.NoError(err)
 
-			assert.Equal(len(tt.expected), len(chain))
+			assert.Len(chain, len(tt.expected))
 
 			for i, cert := range chain {
 				assert.Equal(tt.expected[i], cert.Public.Subject.Organization[0])

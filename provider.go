@@ -7,7 +7,7 @@
 // package also supports customizable trust Verifiers and options for flexible
 // configuration.
 //
-// This package is based on the jwx package from lestrrat-go/jwx/v2.  The
+// This package is based on the jwx package from lestrrat-go/jwx/v3.  The
 // Provider struct implements the jws.KeyProvider interface from the jwx package.
 //
 // See https://github.com/lestrrat-go/jwx for more information on the jwx package.
@@ -20,9 +20,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/cert"
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v3/cert"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jws"
 )
 
 // Provider is a struct that holds the trusted roots,  and policies
@@ -77,11 +77,11 @@ func (t Provider) Roots() []*x509.Certificate {
 func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signature, msg *jws.Message) error {
 	headers := sig.ProtectedHeaders()
 
-	a := headers.Algorithm()
-	chain := headers.X509CertChain()
+	a, algOk := headers.Algorithm()
+	chain, _ := headers.X509CertChain()
 
 	// Only continue if the algorithm is asymmetric, ignore the others.
-	if a == "" || a == jwa.NoSignature || a.IsSymmetric() || chain == nil {
+	if !algOk || a.IsSymmetric() || a.String() == jwa.NoSignature().String() || chain == nil {
 		return nil
 	}
 
@@ -93,11 +93,15 @@ func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signat
 	// Link the certificate chain against the trusted roots if possible.
 	chains := t.linkToRoots(certs)
 	if chains == nil {
+		// Chains with links to the trusted roots were not found, so return nil.
+		// This allows other handlers to potentially succeed.
 		return nil
 	}
 
 	verified := t.verifyChains(ctx, chains)
 	if verified == nil {
+		// No valid chains were found, so return nil.  This allows other
+		// handlers to potentially succeed.
 		return nil
 	}
 

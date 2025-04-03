@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xmidt-org/jwskeychain/keychaintest"
@@ -112,7 +112,7 @@ func TestEndToEnd(t *testing.T) {
 			checks: []jwtTest{
 				{
 					jwt: aJWT,
-					alg: jwa.ES256,
+					alg: jwa.ES256(),
 					key: a.Leaf().Public.PublicKey,
 				}, {
 					jwt: bJWT,
@@ -226,7 +226,7 @@ func TestEndToEnd(t *testing.T) {
 				assert.Len(ks.keys, 1)
 				require.NoError(err)
 
-				if check.alg != "" {
+				if check.alg != jwa.EmptySignatureAlgorithm() {
 					assert.Equal(check.alg, ks.keys[0].alg)
 				}
 

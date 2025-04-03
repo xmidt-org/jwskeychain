@@ -14,6 +14,7 @@ A Go library for handling certificate-based trust chain secured JWS and JWTs.
 - Extracts and validates the certificate chains from JWS/JWTs against trusted roots.
 - Customizable trust policies and options
 - `v1` of this library works with lestrrat-go `v2`
+- `v2` of this library works with lestrrat-go `v3`
 
 ## Installation
 

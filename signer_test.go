@@ -8,7 +8,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
 	"github.com/xmidt-org/jwskeychain/keychaintest"
 )
@@ -28,20 +28,20 @@ func TestSigner(t *testing.T) {
 	}{
 		{
 			desc: "empty chain",
-			alg:  jwa.ES256,
+			alg:  jwa.ES256(),
 			err:  ErrInvalidx509Chain,
 		}, {
 			desc:  "root cert",
-			alg:   jwa.ES256,
+			alg:   jwa.ES256(),
 			certs: chain,
 		}, {
 			desc:  "invalid symmetric alg",
-			alg:   jwa.HS256,
+			alg:   jwa.HS256(),
 			certs: chain,
 			err:   ErrInvalidAlg,
 		}, {
 			desc:  "invalid symmetric alg",
-			alg:   jwa.NoSignature,
+			alg:   jwa.NoSignature(),
 			certs: chain,
 			err:   ErrInvalidAlg,
 		},

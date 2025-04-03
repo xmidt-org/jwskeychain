@@ -3,7 +3,7 @@
 
 package jwskeychain
 
-import "github.com/lestrrat-go/jwx/v2/jwa"
+import "github.com/lestrrat-go/jwx/v3/jwa"
 
 type mockKey struct {
 	keys []mockKeySet
