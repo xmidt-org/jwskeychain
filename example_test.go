@@ -6,15 +6,15 @@ package jwskeychain_test
 import (
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jws"
 	"github.com/xmidt-org/jwskeychain"
 	"github.com/xmidt-org/jwskeychain/keychaintest"
 )
 
 func CreateSignedJWT(keychain keychaintest.Chain, payload []byte) ([]byte, error) {
 	// This block shows how you can use the Signer() function.
-	key, err := jwskeychain.Signer(jwa.ES256,
+	key, err := jwskeychain.Signer(jwa.ES256(),
 		keychain.Leaf().Private,
 		keychain.Included())
 	if err != nil {

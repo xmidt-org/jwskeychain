@@ -8,9 +8,9 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/v2/cert"
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v3/cert"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jws"
 )
 
 // Signer creates a JWS SignVerifyOption that is used to sign a JWS with the
@@ -31,7 +31,7 @@ func Signer(alg jwa.SignatureAlgorithm, private any, chain []*x509.Certificate) 
 		return nil, fmt.Errorf("%w: symmetric algorithms are invalid for a public/private key based signature", ErrInvalidAlg)
 	}
 
-	if alg == jwa.NoSignature {
+	if alg.String() == jwa.NoSignature().String() {
 		return nil, fmt.Errorf("%w: jwa.Nosignature is disallowed", ErrInvalidAlg)
 	}
 
