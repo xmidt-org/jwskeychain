@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/lestrrat-go/jwx/v3 v3.0.10
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
