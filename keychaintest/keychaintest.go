@@ -70,7 +70,7 @@ type config struct {
 func New(opts ...Option) (Chain, error) {
 	var c config
 
-	defaults := []Option{
+	defaults := []Option{ // nolint:prealloc
 		EC256(),
 		NotBefore(time.Now()),
 		NotAfter(time.Now().AddDate(1, 0, 0)),

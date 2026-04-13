@@ -44,7 +44,7 @@ var _ jws.KeyProvider = (*Provider)(nil)
 func New(opts ...Option) (*Provider, error) {
 	var r Provider
 
-	defaults := []Option{
+	defaults := []Option{ // nolint:prealloc
 		WithTimeFunc(nil),
 	}
 
