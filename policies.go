@@ -22,7 +22,7 @@ func (p *policiesVerifier) Verify(_ context.Context, chain []*x509.Certificate, 
 	}
 
 	for _, cert := range chain {
-		for _, policy := range cert.PolicyIdentifiers {
+		for _, policy := range cert.Policies {
 			if _, ok := required[policy.String()]; ok {
 				required[policy.String()] = true
 			}

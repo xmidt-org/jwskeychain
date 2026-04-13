@@ -4,6 +4,7 @@
 package keychaintest
 
 import (
+	"crypto/x509"
 	"encoding/asn1"
 	"errors"
 	"fmt"
@@ -109,9 +110,12 @@ func TestNew(t *testing.T) {
 							oid = append(oid, num)
 						}
 
+						xoid, err := x509.OIDFromASN1OID(oid)
+						require.NoError(err)
+
 						found := false
-						for _, certPolicy := range chain[i].Public.PolicyIdentifiers {
-							if certPolicy.Equal(oid) {
+						for _, certPolicy := range chain[i].Public.Policies {
+							if certPolicy.Equal(xoid) {
 								found = true
 								break
 							}
