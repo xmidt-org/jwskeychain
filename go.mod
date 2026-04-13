@@ -1,6 +1,6 @@
 module github.com/xmidt-org/jwskeychain
 
-go 1.24.4
+go 1.26
 
 require (
 	github.com/lestrrat-go/jwx/v3 v3.0.13

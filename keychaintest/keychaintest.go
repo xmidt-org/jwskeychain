@@ -151,10 +151,10 @@ func New(opts ...Option) (Chain, error) {
 						oid = append(oid, num)
 					}
 					xoid, err := x509.OIDFromASN1OID(oid)
-						if err != nil {
-							return nil, fmt.Errorf("invalid policy OID: %v", policy)
-						}
-						template.Policies = append(template.Policies, xoid)
+					if err != nil {
+						return nil, fmt.Errorf("invalid policy OID: %v", policy)
+					}
+					template.Policies = append(template.Policies, xoid)
 				}
 			}
 		}
