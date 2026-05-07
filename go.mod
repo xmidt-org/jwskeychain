@@ -3,7 +3,7 @@ module github.com/xmidt-org/jwskeychain
 go 1.26
 
 require (
-	github.com/lestrrat-go/jwx/v3 v3.1.0
+	github.com/lestrrat-go/jwx/v3 v3.1.1
 	github.com/stretchr/testify v1.11.1
 )
 
