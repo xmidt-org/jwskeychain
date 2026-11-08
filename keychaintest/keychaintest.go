@@ -7,7 +7,6 @@
 // elliptic curves, validity periods, and descriptions. Each certificate
 // in the chain is represented by a Node, which includes both the public
 // certificate and the associated private key.
-
 package keychaintest
 
 import (
@@ -70,7 +69,7 @@ type config struct {
 func New(opts ...Option) (Chain, error) {
 	var c config
 
-	defaults := []Option{ // nolint:prealloc
+	defaults := []Option{ //nolint:prealloc // options are appended conditionally
 		EC256(),
 		NotBefore(time.Now()),
 		NotAfter(time.Now().AddDate(1, 0, 0)),
@@ -91,7 +90,7 @@ func New(opts ...Option) (Chain, error) {
 		}
 	}
 
-	//func generateCertChain(desc string) ([]*x509.Certificate, *ecdsa.PrivateKey, error) {
+	// func generateCertChain(desc string) ([]*x509.Certificate, *ecdsa.PrivateKey, error) {
 	re := regexp.MustCompile(`\s+`)
 	description := re.ReplaceAllString(c.desc, "")
 

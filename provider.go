@@ -44,7 +44,7 @@ var _ jws.KeyProvider = (*Provider)(nil)
 func New(opts ...Option) (*Provider, error) {
 	var r Provider
 
-	defaults := []Option{ // nolint:prealloc
+	defaults := []Option{ //nolint:prealloc // options are appended conditionally
 		WithTimeFunc(nil),
 	}
 
@@ -74,7 +74,7 @@ func (t Provider) Roots() []*x509.Certificate {
 // returned.  This allows for other handlers to potentially succeed.  Only
 // if this encounters an error with the formatting of the x5c header, will it
 // return an error.
-func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signature, msg *jws.Message) error {
+func (t Provider) FetchKeys(ctx context.Context, ks jws.KeySink, sig *jws.Signature, _ *jws.Message) error {
 	headers := sig.ProtectedHeaders()
 
 	a, algOk := headers.Algorithm()
@@ -118,19 +118,19 @@ func chainToCerts(chain *cert.Chain) ([]*x509.Certificate, error) {
 	// Decode the certificate chain
 	var rv []*x509.Certificate
 
-	for i := 0; i < chain.Len(); i++ {
+	for i := range chain.Len() {
 		certStr, _ := chain.Get(i)
 
-		certData, err := base64.URLEncoding.DecodeString(string(certStr))
+		certData, err := base64.StdEncoding.DecodeString(string(certStr))
 		if err != nil {
 			return nil, errors.Join(ErrParsingJWS, err)
 		}
-		cert, err := x509.ParseCertificate(certData)
+		c, err := x509.ParseCertificate(certData)
 		if err != nil {
 			return nil, errors.Join(ErrParsingJWS, err)
 		}
 
-		rv = append(rv, cert)
+		rv = append(rv, c)
 	}
 
 	return rv, nil

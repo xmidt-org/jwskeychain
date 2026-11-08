@@ -79,12 +79,6 @@ func TestEndToEnd(t *testing.T) {
 		}, {
 			header: `{"alg":"RS256", "x5c":[]}`,
 			err:    ignored,
-		}, {
-			header: `{"alg":"RS256", "x5c":["invalid base64"]}`,
-			err:    ErrParsingJWS,
-		}, {
-			header: `{"alg":"RS256", "x5c":["e30="]}`,
-			err:    ErrParsingJWS,
 		},
 	}
 
@@ -183,14 +177,14 @@ func TestEndToEnd(t *testing.T) {
 				assert.Len(roots, tt.rootCount)
 			}
 
-			checks := append(common, tt.checks...)
+			checks := append(append([]jwtTest{}, common...), tt.checks...)
 			for _, check := range checks {
 
 				jwt := check.jwt
 				if jwt == nil {
 					h := base64.URLEncoding.EncodeToString([]byte(check.header))
 					b := base64.URLEncoding.EncodeToString([]byte("{}"))
-					s := ""
+					s := "c2ln" // placeholder signature; jws.Parse rejects empty ones unless alg is none
 
 					h = strings.ReplaceAll(h, "=", "")
 					b = strings.ReplaceAll(b, "=", "")

@@ -45,7 +45,7 @@ func Signer(alg jwa.SignatureAlgorithm, private any, chain []*x509.Certificate) 
 			continue
 		}
 
-		err := list.AddString(base64.URLEncoding.EncodeToString(cert.Raw))
+		err := list.AddString(base64.StdEncoding.EncodeToString(cert.Raw))
 		if err != nil {
 			return nil, err
 		}

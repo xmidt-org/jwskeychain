@@ -102,7 +102,7 @@ func TestCrossSigning(t *testing.T) {
 	require.NotEmpty(t, bxcJwt)
 
 	// -- test ----------------------------------------------------------------
-	errUnknown := fmt.Errorf("unknown")
+	errUnknown := errors.New("unknown")
 	require.Error(t, errUnknown)
 
 	tests := []struct {
@@ -290,7 +290,7 @@ func TestCrossSigning(t *testing.T) {
 	}
 }
 
-func crossSign(ica keychaintest.Node, root keychaintest.Node) (keychaintest.Node, error) {
+func crossSign(ica, root keychaintest.Node) (keychaintest.Node, error) {
 	// Create a template for the cross-signed certificate
 	crossSignedTemplate := *ica.Public
 	crossSignedTemplate.Issuer = root.Public.Subject
@@ -299,13 +299,13 @@ func crossSign(ica keychaintest.Node, root keychaintest.Node) (keychaintest.Node
 	// Create the cross-signed certificate
 	crossSignedCertDER, err := x509.CreateCertificate(rand.Reader, &crossSignedTemplate, root.Public, &ica.Private.PublicKey, root.Private)
 	if err != nil {
-		return keychaintest.Node{}, fmt.Errorf("failed to create cross-signed certificate: %v", err)
+		return keychaintest.Node{}, fmt.Errorf("failed to create cross-signed certificate: %w", err)
 	}
 
 	// Parse the cross-signed certificate
 	crossSignedCert, err := x509.ParseCertificate(crossSignedCertDER)
 	if err != nil {
-		return keychaintest.Node{}, fmt.Errorf("failed to parse cross-signed certificate: %v", err)
+		return keychaintest.Node{}, fmt.Errorf("failed to parse cross-signed certificate: %w", err)
 	}
 
 	// Return the new Node with the cross-signed certificate and the original private key
